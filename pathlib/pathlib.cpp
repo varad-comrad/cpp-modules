@@ -1,14 +1,19 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <filesystem>
 
 #ifdef _WIN32
 const char pathsep = '\\';
 #elif __linux__
 const char pathsep = '/';
+#else
+const char pathsep = '/';
 #endif
 
 namespace pathlib {
+
+    namespace fs = std::filesystem;
 
     class FileNotFoundError : public std::exception {
         const char* what() const throw() {
@@ -48,6 +53,17 @@ namespace pathlib {
 
     class Path {
     public:
+
+        Path(const Path& path) : path_(path.path_) {
+            name_ = path_.substr(path_.find_last_of(pathsep) + 1);
+            parent_ = path_.substr(0, path_.find_last_of(pathsep));
+        }
+
+        Path(Path&& path) : path_(path.path_) {
+            name_ = path_.substr(path_.find_last_of(pathsep) + 1);
+            parent_ = path_.substr(0, path_.find_last_of(pathsep));
+        }
+
         Path(const std::string& path) : path_(path) {
             name_ = path_.substr(path_.find_last_of(pathsep) + 1);
             parent_ = path_.substr(0, path_.find_last_of(pathsep));
@@ -75,6 +91,14 @@ namespace pathlib {
             return Path(path_ + pathsep + other.name_);
         }
 
+        Path operator=(const Path& other) const {
+            return Path(other.path_);
+        }
+
+        Path operator=(Path&& other) const {
+            return Path(other.path_);
+        }
+
         std::string name() const {
             return name_;
         }
@@ -83,23 +107,19 @@ namespace pathlib {
             return parent_;
         }
 
-        class Iterator{
-
-        };
-
         using fstream = std::fstream;
         using ios_base = std::fstream::ios_base;
 
         bool is_dir() const {
-
+            return fs::is_directory(path_);
         }
 
         bool is_file() const {
-
+            return fs::is_regular_file(path_);
         }
 
         bool exists() const {
-
+            return fs::exists(path_);
         }
 
         bool mkdir() const {
@@ -107,19 +127,15 @@ namespace pathlib {
         }
 
         bool is_symlink() const {
-
+            return fs::is_symlink(path_);
         }
 
         bool is_absolute() const {
-
+            return fs::path(path_).is_absolute();
         }
 
         bool is_relative() const {
-
-        }
-
-        bool is_mount() const {
-
+            return fs::path(path_).is_relative();
         }
 
         bool is_block_device() const {
@@ -131,11 +147,11 @@ namespace pathlib {
         }
 
         bool is_fifo() const {
-
+            return fs::is_fifo(path_);
         }
 
         bool is_socket() const {
-
+            return fs::is_socket(path_);
         }
 
         bool is_reserved() const {
@@ -237,7 +253,7 @@ namespace pathlib {
         fstream open(fstream::ios_base::openmode mode = ios_base::in | ios_base::out) const{
             if (!exists()) {
                 throw FileNotFoundError();
-            } else if (is_dir()) {
+            } else if (!is_file()) {
                 throw IsNotFileError();
             }
             return fstream(path_, mode);
@@ -247,7 +263,7 @@ namespace pathlib {
 
         }
 
-        Iterator iterdir() const {
+        fs::directory_iterator iterdir() const {
 
         }
 
@@ -276,5 +292,5 @@ namespace pathlib {
 
 int main(){
     pathlib::Path p("/home/fabricio/Documents");
-
+    std::cout << p.is_dir() << std::endl;
 }
