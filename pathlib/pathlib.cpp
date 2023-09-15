@@ -5,11 +5,10 @@
 
 #ifdef _WIN32
 const char pathsep = '\\';
-#elif __linux__
-const char pathsep = '/';
 #else
 const char pathsep = '/';
 #endif
+
 
 namespace pathlib {
 
@@ -52,6 +51,12 @@ namespace pathlib {
     };
 
     class Path {
+    
+    private:
+        std::string path_;
+        std::string parent_;
+        std::string name_;
+
     public:
 
         Path(const Path& path) : path_(path.path_) {
@@ -91,12 +96,44 @@ namespace pathlib {
             return Path(path_ + pathsep + other.name_);
         }
 
+        void operator/=(const Path &other){
+            path_ += pathsep + other.name_;
+        }
+
+        void operator/=(Path&& other){
+            path_ += pathsep + other.name_;
+        }
+
+        Path operator+(const Path &other) const {
+            return Path(path_ + other.name_);
+        }
+
+        Path operator+(Path&& other) const {
+            return Path(path_ + other.name_);
+        }
+
+        void operator+=(const Path &other){
+            path_ += other.name_;
+        }
+
+        void operator+=(Path&& other){
+            path_ += other.name_;
+        }
+
         Path operator=(const Path& other) const {
             return Path(other.path_);
         }
 
         Path operator=(Path&& other) const {
             return Path(other.path_);
+        }
+
+        bool operator==(const Path& other) const {
+            return path_ == other.path_;
+        }
+        
+        bool operator!=(const Path& other) const {
+            return path_ != other.path_;
         }
 
         std::string name() const {
@@ -122,7 +159,7 @@ namespace pathlib {
             return fs::exists(path_);
         }
 
-        bool mkdir() const {
+        void mkdir() const {
 
         }
 
@@ -139,11 +176,11 @@ namespace pathlib {
         }
 
         bool is_block_device() const {
-
+            return false;
         }
 
         bool is_char_device() const {
-
+            return false;
         }
 
         bool is_fifo() const {
@@ -155,39 +192,32 @@ namespace pathlib {
         }
 
         bool is_reserved() const {
-
+            return false;
         }
 
         bool is_readonly() const {
+            return false;
 
         }
 
         bool is_writable() const {
-
+            return false;
         }
 
         bool is_executable() const {
-
+            return false;
         }
 
         bool is_readable() const {
-
+            return false;
         }
 
         bool is_samefile(const Path& other) const {
-
-        }
-
-        bool is_samefile(Path&& other) const {
-
+            return this->absolute() == other.absolute();
         }
 
         bool is_relative_to(const Path& other) const {
-
-        }
-
-        bool is_relative_to(Path&& other) const {
-
+            return false;
         }
 
         void chmod(int mode) const {
@@ -195,26 +225,25 @@ namespace pathlib {
         }
 
         Path absolute() const {
-
+             return Path(fs::absolute(fs::path(path_)));
         }
 
         Path relative_to(const Path& other) const {
-
-        }
-
-        Path relative_to(Path&& other) const {
+            return Path(".");
 
         }
 
         Path parent_path() const {
+            return Path(".");
 
         }
 
         Path root() const {
+            return Path(".");
 
         }
 
-        Path rmdir() const {
+        void rmdir() const {
 
         }
 
@@ -263,19 +292,15 @@ namespace pathlib {
 
         }
 
-        fs::directory_iterator iterdir() const {
+        // fs::directory_iterator iterdir() const {
 
-        }
+        // }
 
         ~Path() {
         
         }
 
 
-    private:
-        std::string path_;
-        std::string parent_;
-        std::string name_;
     };
 
     std::ostream& operator<<(std::ostream& os, const Path& path) {
@@ -291,6 +316,6 @@ namespace pathlib {
 }
 
 int main(){
-    pathlib::Path p("/home/fabricio/Documents");
-    std::cout << p.is_dir() << std::endl;
+    pathlib::Path p("Documents");
+    std::cout << p.absolute() << std::endl;
 }
