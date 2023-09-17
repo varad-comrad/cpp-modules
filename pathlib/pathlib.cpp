@@ -159,8 +159,11 @@ namespace pathlib {
             return fs::exists(path_);
         }
 
-        void mkdir() const {
-
+        void mkdir(bool recursive=false) const {
+            if(recursive)
+                fs::create_directories(path_);
+            else
+                fs::create_directory(path_);
         }
 
         bool is_symlink() const {
@@ -175,12 +178,12 @@ namespace pathlib {
             return fs::path(path_).is_relative();
         }
 
-        bool is_block_device() const {
-            return false;
+        bool is_block_file() const {
+            return fs::is_block_file(path_);
         }
 
-        bool is_char_device() const {
-            return false;
+        bool is_char_file() const {
+            return fs::is_character_file(path_);
         }
 
         bool is_fifo() const {
@@ -234,8 +237,10 @@ namespace pathlib {
         }
 
         Path parent_path() const {
-            return Path(".");
-
+            if(path_ == parent_)
+                return Path(fs::absolute(path_).parent_path());
+            else
+                return Path(parent_);
         }
 
         Path root() const {
@@ -251,23 +256,11 @@ namespace pathlib {
 
         }
 
-        void symlink_to(Path&& other) const {
-
-        }
-
         void rename(const Path& other) const {
 
         }
 
-        void rename(Path&& other) const {
-
-        }
-
         void replace(const Path& other) const {
-
-        }
-
-        void replace(Path&& other) const {
 
         }
 
@@ -316,6 +309,7 @@ namespace pathlib {
 }
 
 int main(){
-    pathlib::Path p("Documents");
-    std::cout << p.absolute() << std::endl;
+    pathlib::Path p("docs");
+    // p.mkdir();
+    std::cout << p.parent_path() << std::endl;
 }

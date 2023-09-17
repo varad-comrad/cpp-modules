@@ -13,7 +13,9 @@ class Option {
     Variant variant;
     public:
     Option() : variant(Variant::None), value() {}
+    
     Option(T value) : variant(Variant::Some), value(value) {}
+    
     void print() {
         switch (variant) {
             case Variant::Some:
@@ -24,13 +26,18 @@ class Option {
                 break;
         }
     }
+
+    const static Option<T> None;
 };
+
+template <typename T>
+const Option<T> Option<T>::None = Option<T>();
 
 
 int main() {
     Option<int> some(5);
     some.print();
-    Option<int> none;
+    Option<int> none = Option<int>::None;
     none.print();
     return 0;
 }
